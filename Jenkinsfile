@@ -1,12 +1,15 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'MAVEN'
-    }
-
     stages {
-        stage('Build') {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Maven Build') {
             steps {
                 bat 'mvn clean package'
             }
@@ -14,8 +17,24 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                bat 'docker build -t mavenweb .'
+                bat 'docker build -t myweb:latest .'
             }
+        }
+
+        stage('Docker Run') {
+            steps {
+                bat 'docker run -d --name web-container -p 8081:8080 myweb:latest'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'WEB PROJECT BUILD SUCCESSFUL!'
+        }
+
+        failure {
+            echo 'WEB PROJECT BUILD FAILED!'
         }
     }
 }
